@@ -83,6 +83,26 @@ class Matrix
         }
 
         // operator
+        Matrix operator* (const Matrix& matrix)
+        {
+            if(cols != matrix.rows) {
+                throw std::invalid_argument("matrices have not equal number of rows and columns");
+            }
+
+            Matrix result(rows, matrix.cols);
+            for(int i = 0; i < result.rows; i++) {
+                for(int j = 0; j < result.cols; j++) {
+                    result.values[i * result.cols + j] = 0;
+
+                    for(int k = 0; k < cols; k++) {
+                        result.values[i * result.cols + j] += values[i * cols + k] * matrix.values[k * cols + j];
+                    }
+                }
+            }
+            return result;
+        }
+
+
         Matrix& operator= (const Matrix& matrix)
         {
             this->~Matrix();
@@ -189,6 +209,8 @@ class Matrix
         }
 
         // input & output 
+        // TODO: why use friend right here?
+
         friend void operator>>(istream& s, Matrix& matrix)
         {
             for(int i = 0; i < matrix.rows * matrix.cols; i++){
