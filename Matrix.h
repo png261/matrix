@@ -1,6 +1,5 @@
 #include <iostream>
 #include <fstream>
-
 #include <stdexcept>
 
 using namespace std;
@@ -83,6 +82,19 @@ class Matrix
         }
 
         // operator
+        Matrix Transpose() 
+        {
+            Matrix result(cols, rows);
+
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    result.values[i * rows + j] += values[j * cols + i];
+                }
+            }
+
+            return result;
+        }
+
         Matrix operator* (const Matrix& matrix)
         {
             if(cols != matrix.rows) {
@@ -101,7 +113,6 @@ class Matrix
             }
             return result;
         }
-
 
         Matrix& operator= (const Matrix& matrix)
         {
@@ -209,8 +220,6 @@ class Matrix
         }
 
         // input & output 
-        // TODO: why use friend right here?
-
         friend void operator>>(istream& s, Matrix& matrix)
         {
             for(int i = 0; i < matrix.rows * matrix.cols; i++){
