@@ -9,33 +9,43 @@ class Matrix
 {
     private:
         int rows, cols;
-        T *values;
+        T **values;
 
     public:
         // constructs
         Matrix(int _rows, int _cols)
         {
-            cols = _cols;
             rows = _rows;
-            values = new T[rows * cols]; 
+            cols = _cols;
+
+            values = new T*[rows];
+            for(int i = 0; i < rows; i++){
+                values[i] = new T[cols]; 
+            }
         }
 
         Matrix(int size)
         {
             cols = size;
             rows = size;
-            values = new T[rows * cols];
+
+            values = new T*(rows);
+            for(int i = 0; i < rows; i++){
+                values[i] = new T[cols]; 
+            }
         }
 
         Matrix(const Matrix& matrix)
         {
             rows = matrix.rows;
             cols = matrix.cols;
-            values = new T[rows * cols]; 
+            values = new T*[rows]; 
 
-            for(int i = 0; i < rows; i++)
-            {
-                values[i] = matrix.values[i];         
+            for(int i = 0; i < rows; i++) {
+                values[i] = new T;
+                for(int j = 0; j < cols; j++) {
+                    values[i][j] = matrix.values[i][j];         
+                }
             }
         }
 
@@ -45,18 +55,19 @@ class Matrix
         }
 
         // compare
-        bool operator== (const Matrix& matrix)
+        bool operator== (const Matrix matrix)
         {
             if(rows != matrix.rows || cols != matrix.cols)
             {
                 return false;
             }
 
-            for(int i = 0; i < rows * cols; i++)
-            {
-                if(values[i] != matrix.values[i])
-                {
-                    return false;
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    if(values[i][j] != matrix.values[i][j])
+                    {
+                        return false;
+                    }
                 }
             }
 
@@ -70,11 +81,12 @@ class Matrix
                 return true;
             }
 
-            for(int i = 0; i < rows * cols; i++)
-            {
-                if(values[i] != matrix.values[i])
-                {
-                    return true;
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    if(values[i][j] != matrix.values[i][j])
+                    {
+                        return true;
+                    }
                 }
             }
 
@@ -82,13 +94,17 @@ class Matrix
         }
 
         // operator
-        Matrix Transpose() 
+        T* operator[](int i){
+            return this -> values[i]; 
+        } 
+
+        Matrix transpose() 
         {
             Matrix result(cols, rows);
 
             for(int i = 0; i < rows; i++) {
                 for(int j = 0; j < cols; j++) {
-                    result.values[i * rows + j] += values[j * cols + i];
+                    result.values[j][i] = values[i][j];
                 }
             }
 
@@ -104,14 +120,44 @@ class Matrix
             Matrix result(rows, matrix.cols);
             for(int i = 0; i < result.rows; i++) {
                 for(int j = 0; j < result.cols; j++) {
-                    result.values[i * result.cols + j] = 0;
+                    result.values[i][j] = 0;
 
                     for(int k = 0; k < cols; k++) {
-                        result.values[i * result.cols + j] += values[i * cols + k] * matrix.values[k * cols + j];
+                        result.values[i][j] += values[i, k] * matrix.values[k, j];
                     }
                 }
             }
             return result;
+        }
+
+        Matrix& operator*= (const Matrix& matrix)
+        {
+            if(cols != matrix.rows) {
+                throw std::invalid_argument("matrices have not equal number of rows and columns");
+            }
+
+            Matrix result(rows, matrix.cols);
+            for(int i = 0; i < result.rows; i++) {
+                for(int j = 0; j < result.cols; j++) {
+                    result.values[i][j] = 0;
+
+                    for(int k = 0; k < cols; k++) {
+                        result.values[i][j] += values[i][k] * matrix.values[k][j];
+                    }
+                }
+            }
+
+            this->~Matrix();
+            this->rows = result.rows;
+            this->cols = result.cols;
+
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    this->values[i][j] = result.values[i][j];
+                }
+            }
+
+            return *this;
         }
 
         Matrix& operator= (const Matrix& matrix)
@@ -119,10 +165,13 @@ class Matrix
             this->~Matrix();
             this->rows = matrix.rows;
             this->cols = matrix.cols;
+            this->values = new T*[rows];
 
-            for(int i = 0; i < rows * cols; i++)
-            {
-                this->values[i] = matrix.values[i];
+            for(int i = 0; i < rows; i++) {
+                this->values[i] = new T[cols]; 
+                for(int j = 0; j < cols; j++) {
+                    this->values[i][j] = matrix.values[i][j];
+                }
             }
             return *this;
         }
@@ -134,9 +183,10 @@ class Matrix
             }
 
             Matrix result(rows, cols);
-            for(int i = 0; i < rows * cols; i++)
-            {
-                result.values[i] = values[i] - matrix.values[i]; 
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    result.values[i][j] = values[i][j] - matrix.values[i][j]; 
+                }
             }
             return result;
         }
@@ -147,9 +197,10 @@ class Matrix
                 throw std::invalid_argument("matrices have not equal number of rows and columns");
             }
 
-            for(int i = 0; i < rows * cols; i++)
-            {
-                values[i] -= matrix.values[i]; 
+            for(int i = 0; i < rows; i++) {
+                for(int i = 0; i < cols; i++) {
+                    values[i] -= matrix.values[i]; 
+                }
             }
             return *this;
         }
@@ -161,9 +212,10 @@ class Matrix
             }
 
             Matrix result(rows, cols);
-            for(int i = 0; i < rows * cols; i++)
-            {
-                result.values[i] = values[i] + matrix.values[i]; 
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    result.values[i][j] = values[i][j] + matrix.values[i][j]; 
+                }
             }
             return result;
         }
@@ -174,9 +226,10 @@ class Matrix
                 throw std::invalid_argument("matrices have not equal number of rows and columns");
             }
 
-            for(int i = 0; i < rows * cols; i++)
-            {
-                values[i] += matrix.values[i]; 
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    values[i][j] += matrix.values[i][j]; 
+                }
             }
             return *this;
         }
@@ -184,18 +237,20 @@ class Matrix
         Matrix operator/(T n)
         {
             Matrix result(rows, cols);
-            for(int i = 0; i < rows * cols; i++)
-            {
-                result.values[i] = values[i] / n; 
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    result.values[i][j] = values[i][j] / n; 
+                }
             }
             return result;
         }
 
         Matrix& operator/=(T n)
         {
-            for(int i = 0; i < rows * cols; i++)
-            {
-                values[i] /= n; 
+            for(int i = 0; i < rows * cols; i++) {
+                for(int j = 0; j < cols; j++) {
+                    values[i][j] /= n; 
+                }
             }
             return *this;
         }
@@ -203,18 +258,20 @@ class Matrix
         Matrix operator*(T n)
         {
             Matrix result(rows, cols);
-            for(int i = 0; i < rows * cols; i++)
-            {
-                result.values[i] = values[i] * n; 
+            for(int i = 0; i < rows; i++) {
+                for(int j = 0; j < cols; j++) {
+                    result.values[i][j] = values[i][j] * n; 
+                }
             }
             return result;
         }
 
         Matrix& operator*=(T n)
         {
-            for(int i = 0; i < rows * cols; i++)
-            {
-                values[i] *= n; 
+            for(int i = 0; i < rows * cols; i++) {
+                for(int j = 0; j < cols; j++) {
+                    values[i][j] *= n; 
+                }
             }
             return *this;
         }
@@ -222,30 +279,40 @@ class Matrix
         // input & output 
         friend void operator>>(istream& s, Matrix& matrix)
         {
-            for(int i = 0; i < matrix.rows * matrix.cols; i++){
-                s>>matrix.values[i];
+            for(int i = 0; i < matrix.rows; i++){
+                for(int j = 0; j < matrix.cols; j++){
+                    s>>matrix.values[i][j];
+                }
             }
         }
 
         friend void operator<<(ostream& s, Matrix& matrix)
         {
-            for(int i = 0; i < matrix.rows * matrix.cols; i++){
-                s<<matrix.values[i]<<" ";
+            for(int i = 0; i < matrix.rows; i++){
+                for(int j = 0; j < matrix.cols; j++){
+                    s<<matrix.values[i][j]<<" ";
+                }
+                s<<endl;
             }
         }
 
         friend void operator>>(ifstream& fs, Matrix& matrix)
         {
-            for(int i = 0; i < matrix.rows * matrix.cols; i++){
-                fs>>matrix.values[i];
+            for(int i = 0; i < matrix.rows; i++){
+                for(int j = 0; j < matrix.cols; j++){
+                    fs>>matrix.values[i][j];
+                }
             }
         }
 
         friend void operator<<(ofstream& fs, Matrix& matrix)
         {
-            for(int i = 0; i < matrix.rows * matrix.cols; i++){
-                fs<<matrix.values[i]<<" ";
+            for(int i = 0; i < matrix.rows; i++){
+                for(int j = 0; j < matrix.cols; j++){
+                    fs<<matrix.values[i][j]<<" ";
+                }
+                fs<<endl;
             }
-        }
+       }
 };
 
