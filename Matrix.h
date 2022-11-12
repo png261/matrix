@@ -268,7 +268,7 @@ class Matrix
 
         Matrix& operator*=(T n)
         {
-            for(int i = 0; i < rows * cols; i++) {
+            for(int i = 0; i < rows; i++) {
                 for(int j = 0; j < cols; j++) {
                     values[i][j] *= n; 
                 }
