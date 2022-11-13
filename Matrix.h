@@ -286,7 +286,7 @@ class Matrix
             }
         }
 
-        friend void operator<<(ostream& s, Matrix& matrix)
+        friend void operator<<(ostream& s, Matrix matrix)
         {
             for(int i = 0; i < matrix.rows; i++){
                 for(int j = 0; j < matrix.cols; j++){
@@ -305,7 +305,7 @@ class Matrix
             }
         }
 
-        friend void operator<<(ofstream& fs, Matrix& matrix)
+        friend void operator<<(ofstream& fs, Matrix matrix)
         {
             for(int i = 0; i < matrix.rows; i++){
                 for(int j = 0; j < matrix.cols; j++){
